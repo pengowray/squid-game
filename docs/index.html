@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Squid Game (2007)</title>
+  <script src="ruffle/ruffle.js"></script>
+  <!-- 
+  or latest: 
+  <script src="https://unpkg.com/@ruffle-rs/ruffle"></script> 
+  -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 40px;
+      background: #f5f5f5;
+      line-height: 1.6;
+    }
+
+    header {
+      max-width: 800px;
+      margin: auto;
+      text-align: center;
+      padding-bottom: 40px;
+    }
+
+    h1 {
+      margin-bottom: 0.2em;
+      font-size: 2.4rem;
+    }
+
+    h2 {
+      margin-top: 2.5em;
+    }
+
+    #game-container {
+      display: flex;
+      justify-content: center;
+      margin: 40px 0;
+    }
+
+    footer {
+      margin-top: 60px;
+      text-align: center;
+      color: #666;
+      font-size: 0.9rem;
+    }
+</style>
+</head>
+<body>
+  <div id="game-container"></div>
+
+  <script>
+    window.RufflePlayer = window.RufflePlayer || {};
+    const ruffle = window.RufflePlayer.newest();
+    const player = ruffle.createPlayer();
+    document.getElementById("game-container").appendChild(player);
+    player.load("squid_game.swf");
+  </script>
+
+<header>
+<h1>Welcome to Squid Game (2007)</h1>
+<p>The original Squid Game by Pengo Wray, created in Flash.</p>
+</header>
+<p>
+
+<h2>Instructions</h2>
+<p>
+<ul>
+  <li>Click to attach an arm.</li>
+  <li>Hold left mouse button to release all arms</li>
+  <li>(optional) Arrow keys for free movement. You get a bonus achievement for not using keyboard (or you did on Kongregate anyway).</li>
+  <li>Collect "arm coins" to receive additional tentacle arms.</li>
+  <li>Goal: Collect all the coins to be disappointed that that's all there is. There is no level 2.</li>
+  <li>Play the tutorial for more instructions.</li>
+</ul>
+</p>
+
+<h2>About This Project</h2>
+<p>
+  This game was originally made in Adobe Flash in 2007. In one development version the balloons actually floated. I don't remember why they stopped doing that. Probably a bug. After releasing this travesty of a game I gave up on writing my own physics engines and started using the open source Box2D engine instead, which simulated physics far less jankily.
+</p>
+<p>
+  Squid Game was made to be played on <a href="https://www.kongregate.com/en/games/Pengo/squid-game">kongregate.com</a> where it had integrated achievements and a scoreboard, but it's no longer be playable there. (<a href="https://web.archive.org/web/20251203091332/http://web.archive.org/screenshot/https://www.kongregate.com/en/games/Pengo/squid-game">archive screenshot</a>)
+</p>
+<p>
+  With the end of Flash Player, it stopped being playable. Thanks to the Ruffle project, I can finally make it "playable" online again. It's still not very playable, but you can play it. Have fun.
+</p>
+
+<footer>
+  © 2007-2025 Pengo Wray. Remind me to upload the AS2 source code later.
+</footer>
+
+</body>
+</html>
