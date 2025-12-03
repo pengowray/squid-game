@@ -10,12 +10,30 @@
   -->
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
+    :root {
+      color-scheme: light dark;
+      --bg-light: #f5f5f5;
+      --bg-dark: #0f1117;
+      --text-light: #111;
+      --text-dark: #f5f5f5;
+      --panel-light: #fff;
+      --panel-dark: #1b1f2a;
+      --accent: #ff5c39;
+    }
+
     body {
       font-family: sans-serif;
       margin: 0;
       padding: 40px;
-      background: #f5f5f5;
       line-height: 1.6;
+      background: var(--bg-dark);
+      color: var(--text-dark);
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    body[data-theme="light"] {
+      background: var(--bg-light);
+      color: var(--text-light);
     }
 
     header {
@@ -23,6 +41,16 @@
       margin: auto;
       text-align: center;
       padding-bottom: 40px;
+      background: var(--panel-dark);
+      border-radius: 16px;
+      padding: 40px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+      transition: background 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    body[data-theme="light"] header {
+      background: var(--panel-light);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     }
 
     h1 {
@@ -38,6 +66,16 @@
       display: flex;
       justify-content: center;
       margin: 40px 0;
+      background: var(--panel-dark);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.3);
+      transition: background 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    body[data-theme="light"] #game-container {
+      background: var(--panel-light);
+      box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.08);
     }
 
     footer {
@@ -45,10 +83,117 @@
       text-align: center;
       color: #666;
       font-size: 0.9rem;
+      transition: color 0.3s ease;
+    }
+
+    body[data-theme="dark"] footer {
+      color: #a0a8c1;
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      z-index: 2;
+    }
+
+    .theme-toggle button {
+      border: none;
+      border-radius: 999px;
+      background: var(--panel-dark);
+      color: var(--text-dark);
+      padding: 10px 14px;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+      transition: transform 0.2s ease, background 0.3s ease, color 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 52px;
+    }
+
+    body[data-theme="light"] .theme-toggle button {
+      background: var(--panel-light);
+      color: var(--text-light);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .theme-toggle button:hover {
+      transform: translateY(-1px);
+    }
+
+    .theme-toggle .icon {
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      line-height: 1;
+    }
+
+    .theme-toggle .icon svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    body[data-theme="dark"] .icon-light,
+    body[data-theme="light"] .icon-dark {
+      display: none;
+    }
+
+    .icon-light {
+      font-size: 1.25rem;
+      letter-spacing: -0.05em;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration-color: rgba(255, 92, 57, 0.4);
+      transition: color 0.2s ease, text-decoration-color 0.2s ease;
+    }
+
+    body[data-theme="light"] a {
+      color: #c33a1c;
+      text-decoration-color: rgba(195, 58, 28, 0.4);
+    }
+
+    a:hover,
+    a:focus-visible {
+      color: #ff805f;
+      text-decoration-color: currentColor;
+    }
+
+    body[data-theme="light"] a:hover,
+    body[data-theme="light"] a:focus-visible {
+      color: #e04421;
     }
 </style>
 </head>
-<body>
+<body data-theme="dark">
+  <div class="theme-toggle" aria-live="polite">
+    <button id="theme-toggle" type="button" aria-label="Switch to light mode" title="Switch to light mode">
+      <span class="icon icon-dark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" role="presentation" focusable="false">
+          <path fill="currentColor" d="M21 15.25A9 9 0 0 1 8.75 3 7.25 7.25 0 1 0 21 15.25Z" />
+        </svg>
+      </span>
+      <span class="icon icon-light" aria-hidden="true">☀</span>
+      <span class="sr-only">Toggle color mode</span>
+    </button>
+  </div>
   <div id="game-container"></div>
 
   <script>
@@ -57,6 +202,31 @@
     const player = ruffle.createPlayer();
     document.getElementById("game-container").appendChild(player);
     player.load("squid_game.swf");
+
+    const body = document.body;
+    const toggleBtn = document.getElementById("theme-toggle");
+    const storedTheme = localStorage.getItem("theme");
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const initialTheme = storedTheme || (prefersDark ? "dark" : "light");
+
+    const setToggleLabels = (theme) => {
+      const label = theme === "dark" ? "Switch to light mode" : "Switch to dark mode";
+      toggleBtn.setAttribute("aria-label", label);
+      toggleBtn.setAttribute("title", label);
+    };
+
+    const applyTheme = (theme) => {
+      body.setAttribute("data-theme", theme);
+      setToggleLabels(theme);
+    };
+
+    applyTheme(initialTheme || "dark");
+
+    toggleBtn.addEventListener("click", () => {
+      const nextTheme = body.getAttribute("data-theme") === "dark" ? "light" : "dark";
+      applyTheme(nextTheme);
+      localStorage.setItem("theme", nextTheme);
+    });
   </script>
 
 <header>
@@ -82,7 +252,7 @@
   This game was originally made in Adobe Flash in 2007. In one development version the balloons actually floated. I don't remember why they stopped doing that. Probably a bug. After releasing this travesty of a game I gave up on writing my own physics engines and started using the open source Box2D engine instead, which simulated physics far less jankily.
 </p>
 <p>
-  Squid Game was made to be played on <a href="https://www.kongregate.com/en/games/Pengo/squid-game">kongregate.com</a> where it had integrated achievements and a scoreboard, but it's no longer be playable there. (<a href="https://web.archive.org/web/20251203091332/http://web.archive.org/screenshot/https://www.kongregate.com/en/games/Pengo/squid-game">archive screenshot</a>)
+  Squid Game was made to be played on <a href="https://www.kongregate.com/en/games/Pengo/squid-game">kongregate.com</a> where it had integrated achievements and a scoreboard, but it's no longer playable there. (<a href="https://web.archive.org/web/20251203091332/http://web.archive.org/screenshot/https://www.kongregate.com/en/games/Pengo/squid-game">archive screenshot</a>)
 </p>
 <p>
   With the end of Flash Player, it stopped being playable. Thanks to the Ruffle project, I can finally make it "playable" online again. It's still not very playable (it never was), but you can play it. Have fun.
