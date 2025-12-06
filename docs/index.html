@@ -9,6 +9,20 @@
   <script src="https://unpkg.com/@ruffle-rs/ruffle"></script> 
   -->
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>
+    (() => {
+      try {
+        const storedTheme = localStorage.getItem("theme");
+        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const initialTheme = storedTheme || (prefersDark ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", initialTheme);
+        window.__initialTheme = initialTheme;
+      } catch (error) {
+        document.documentElement.setAttribute("data-theme", "dark");
+        window.__initialTheme = "dark";
+      }
+    })();
+  </script>
   <style>
     :root {
       color-scheme: light dark;
@@ -24,14 +38,14 @@
     body {
       font-family: sans-serif;
       margin: 0;
-      padding: 40px;
+      padding: 5px 40px 40px;
       line-height: 1.6;
       background: var(--bg-dark);
       color: var(--text-dark);
       transition: background 0.3s ease, color 0.3s ease;
     }
 
-    body[data-theme="light"] {
+    html[data-theme="light"] body {
       background: var(--bg-light);
       color: var(--text-light);
     }
@@ -48,7 +62,7 @@
       transition: background 0.3s ease, box-shadow 0.3s ease;
     }
 
-    body[data-theme="light"] header {
+    html[data-theme="light"] header {
       background: var(--panel-light);
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     }
@@ -65,7 +79,7 @@
     #game-container {
       display: flex;
       justify-content: center;
-      margin: 40px 0;
+      margin: 0 0 40px;
       background: var(--panel-dark);
       border-radius: 20px;
       padding: 0 20px 20px;
@@ -73,7 +87,7 @@
       transition: background 0.3s ease, box-shadow 0.3s ease;
     }
 
-    body[data-theme="light"] #game-container {
+    html[data-theme="light"] #game-container {
       background: var(--panel-light);
       box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.08);
     }
@@ -86,7 +100,7 @@
       transition: color 0.3s ease;
     }
 
-    body[data-theme="dark"] footer {
+    html[data-theme="dark"] footer {
       color: #a0a8c1;
     }
 
@@ -112,7 +126,7 @@
       min-width: 52px;
     }
 
-    body[data-theme="light"] .theme-toggle button {
+    html[data-theme="light"] .theme-toggle button {
       background: var(--panel-light);
       color: var(--text-light);
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
@@ -138,8 +152,8 @@
       display: block;
     }
 
-    body[data-theme="dark"] .icon-light,
-    body[data-theme="light"] .icon-dark {
+    html[data-theme="dark"] .icon-light,
+    html[data-theme="light"] .icon-dark {
       display: none;
     }
 
@@ -165,7 +179,7 @@
       transition: color 0.2s ease, text-decoration-color 0.2s ease;
     }
 
-    body[data-theme="light"] a {
+    html[data-theme="light"] a {
       color: #c33a1c;
       text-decoration-color: rgba(195, 58, 28, 0.4);
     }
@@ -176,13 +190,13 @@
       text-decoration-color: currentColor;
     }
 
-    body[data-theme="light"] a:hover,
-    body[data-theme="light"] a:focus-visible {
+    html[data-theme="light"] a:hover,
+    html[data-theme="light"] a:focus-visible {
       color: #e04421;
     }
 </style>
 </head>
-<body data-theme="dark">
+<body>
   <div class="theme-toggle" aria-live="polite">
     <button id="theme-toggle" type="button" aria-label="Switch to light mode" title="Switch to light mode">
       <span class="icon icon-dark" aria-hidden="true">
@@ -198,22 +212,35 @@
   <div id="game-container"></div>
   <script>
     window.RufflePlayer = window.RufflePlayer || {};
+
+    const root = document.documentElement;
+    const body = document.body;
+    const toggleBtn = document.getElementById("theme-toggle");
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    let storedTheme = null;
+    try {
+      storedTheme = localStorage.getItem("theme");
+    } catch (error) {
+      storedTheme = null;
+    }
+    const initialTheme = window.__initialTheme || storedTheme || (prefersDark ? "dark" : "light");
+    const themeBackgrounds = {
+      light: "#ffffff",
+      dark: "#aaaaaa"
+    };
+
+    const getBackgroundColor = (theme) => themeBackgrounds[theme] || themeBackgrounds.dark;
+
     window.RufflePlayer.config = {
         ...window.RufflePlayer.config,
-        "volume": 0,
-        "splashScreen": false,
-        "backgroundColor": "#aaaaaa"
+        volume: 0,
+        splashScreen: false,
+        backgroundColor: getBackgroundColor(initialTheme)
     };
     const ruffle = window.RufflePlayer.newest();
     const player = ruffle.createPlayer();
     document.getElementById("game-container").appendChild(player);
     player.load("squid_game.swf");
-
-    const body = document.body;
-    const toggleBtn = document.getElementById("theme-toggle");
-    const storedTheme = localStorage.getItem("theme");
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const initialTheme = storedTheme || (prefersDark ? "dark" : "light");
 
     const setToggleLabels = (theme) => {
       const label = theme === "dark" ? "Switch to light mode" : "Switch to dark mode";
@@ -221,17 +248,32 @@
       toggleBtn.setAttribute("title", label);
     };
 
-    const applyTheme = (theme) => {
-      body.setAttribute("data-theme", theme);
-      setToggleLabels(theme);
+    const setRuffleBackground = (theme) => {
+      const backgroundColor = getBackgroundColor(theme);
+      window.RufflePlayer.config = {
+        ...window.RufflePlayer.config,
+        backgroundColor
+      };
+      player.style.backgroundColor = backgroundColor;
     };
 
-    applyTheme(initialTheme || "dark");
+    const applyTheme = (theme) => {
+      root.setAttribute("data-theme", theme);
+      body.setAttribute("data-theme", theme);
+      setToggleLabels(theme);
+      setRuffleBackground(theme);
+    };
+
+    applyTheme(initialTheme);
 
     toggleBtn.addEventListener("click", () => {
-      const nextTheme = body.getAttribute("data-theme") === "dark" ? "light" : "dark";
+      const nextTheme = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
       applyTheme(nextTheme);
-      localStorage.setItem("theme", nextTheme);
+      try {
+        localStorage.setItem("theme", nextTheme);
+      } catch (error) {
+        // ignore write failures (e.g., private browsing)
+      }
     });
     
     // On pressing ENTER call toggleFullScreen method
