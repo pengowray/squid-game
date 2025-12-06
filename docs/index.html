@@ -243,7 +243,8 @@
     const initialTheme = window.__initialTheme || storedTheme || (prefersDark ? "dark" : "light");
     const themeBackgrounds = {
       light: "#ffffff",
-      dark: "#dddddd"
+      <!-- dark: "#dddddd" -->
+      dark: "#ffffff"
     };
 
     const getBackgroundColor = (theme) => themeBackgrounds[theme] || themeBackgrounds.dark;
@@ -369,10 +370,10 @@
   This game was originally made in Adobe Flash in 2007. In one development version the balloons actually floated. I don't remember why they stopped doing that. Probably a bug. After releasing this travesty of a game I gave up on writing my own physics engines and started using the open source Box2D engine instead, which simulated physics far less jankily.
 </p>
 <p>
-  Squid Game was made to be played on <a href="https://www.kongregate.com/en/games/Pengo/squid-game">kongregate.com</a> where it had integrated achievements and a scoreboard, but it's no longer playable there. (<a href="https://web.archive.org/web/20251203091332/http://web.archive.org/screenshot/https://www.kongregate.com/en/games/Pengo/squid-game">archive screenshot</a>)
+  Squid Game was made to be played on <a href="https://www.kongregate.com/en/games/Pengo/squid-game">kongregate</a> where it had integrated achievements and a scoreboard, but it's no longer playable there. (<a href="https://web.archive.org/web/20071014013526/http://www.kongregate.com/games/Pengo/squid-game">archive</a>)
 </p>
 <p>
-  With the end of Flash Player, it stopped being playable. Thanks to the Ruffle project, I can finally make it "playable" online again. It's still not very playable (it never was), but you can play it. Have fun.
+  With the end of Flash Player, it stopped being playable. Thanks to <a href="https://ruffle.rs/">Ruffle</a>, I can finally make it "playable" online again. It's still not very playable (it never was), but you can play it. Have fun.
 </p>
 
 <footer>
