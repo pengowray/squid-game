@@ -194,10 +194,16 @@
       <span class="sr-only">Toggle color mode</span>
     </button>
   </div>
-  <div id="game-container"></div>
 
+  <div id="game-container"></div>
   <script>
     window.RufflePlayer = window.RufflePlayer || {};
+    window.RufflePlayer.config = {
+        ...window.RufflePlayer.config,
+        "volume": 0,
+        "splashScreen": false,
+        "backgroundColor": "#aaaaaa"
+    };
     const ruffle = window.RufflePlayer.newest();
     const player = ruffle.createPlayer();
     document.getElementById("game-container").appendChild(player);
@@ -227,6 +233,21 @@
       applyTheme(nextTheme);
       localStorage.setItem("theme", nextTheme);
     });
+    
+    // On pressing ENTER call toggleFullScreen method
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === "f" || e.key === "F") {
+        toggleFullScreen(player);
+      }
+    });
+    
+    function toggleFullScreen(video) {
+      if (!document.fullscreenElement) {
+        video.requestFullscreen();
+      } else {
+        document.exitFullscreen?.();
+      }
+}
   </script>
 
 <header>
