@@ -109,6 +109,10 @@
       top: 16px;
       right: 16px;
       z-index: 2;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: flex-end;
     }
 
     .theme-toggle button {
@@ -207,6 +211,10 @@
       <span class="icon icon-light" aria-hidden="true">☀</span>
       <span class="sr-only">Toggle color mode</span>
     </button>
+    <button id="fullscreen-toggle" type="button" aria-label="Enter fullscreen" title="Enter fullscreen">
+      <span class="icon icon-fullscreen" aria-hidden="true">⛶</span>
+      <span class="sr-only">Toggle fullscreen</span>
+    </button>
   </div>
 
   <div id="game-container"></div>
@@ -216,6 +224,15 @@
     const root = document.documentElement;
     const body = document.body;
     const toggleBtn = document.getElementById("theme-toggle");
+    const fullscreenBtn = document.getElementById("fullscreen-toggle");
+    const themeToggleContainer = document.querySelector(".theme-toggle");
+    const themeTogglePlaceholder = document.createComment("theme-toggle-placeholder");
+    if (themeToggleContainer?.parentNode) {
+      themeToggleContainer.parentNode.insertBefore(
+        themeTogglePlaceholder,
+        themeToggleContainer.nextSibling
+      );
+    }
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     let storedTheme = null;
     try {
@@ -226,7 +243,7 @@
     const initialTheme = window.__initialTheme || storedTheme || (prefersDark ? "dark" : "light");
     const themeBackgrounds = {
       light: "#ffffff",
-      dark: "#aaaaaa"
+      dark: "#dddddd"
     };
 
     const getBackgroundColor = (theme) => themeBackgrounds[theme] || themeBackgrounds.dark;
@@ -241,11 +258,21 @@
     const player = ruffle.createPlayer();
     document.getElementById("game-container").appendChild(player);
     player.load("squid_game.swf");
+    const fullscreenTarget = player;
 
     const setToggleLabels = (theme) => {
       const label = theme === "dark" ? "Switch to light mode" : "Switch to dark mode";
       toggleBtn.setAttribute("aria-label", label);
       toggleBtn.setAttribute("title", label);
+    };
+
+    const setFullscreenLabels = (isFullscreen) => {
+      if (!fullscreenBtn) {
+        return;
+      }
+      const label = isFullscreen ? "Exit fullscreen" : "Enter fullscreen";
+      fullscreenBtn.setAttribute("aria-label", label);
+      fullscreenBtn.setAttribute("title", label);
     };
 
     const setRuffleBackground = (theme) => {
@@ -257,6 +284,17 @@
       player.style.backgroundColor = backgroundColor;
     };
 
+    const relocateThemeToggle = (isFullscreen) => {
+      if (!themeToggleContainer || !themeTogglePlaceholder?.parentNode) {
+        return;
+      }
+      if (isFullscreen) {
+        fullscreenTarget.appendChild(themeToggleContainer);
+      } else {
+        themeTogglePlaceholder.parentNode.insertBefore(themeToggleContainer, themeTogglePlaceholder);
+      }
+    };
+
     const applyTheme = (theme) => {
       root.setAttribute("data-theme", theme);
       body.setAttribute("data-theme", theme);
@@ -265,6 +303,8 @@
     };
 
     applyTheme(initialTheme);
+    setFullscreenLabels(false);
+    relocateThemeToggle(false);
 
     toggleBtn.addEventListener("click", () => {
       const nextTheme = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
@@ -275,17 +315,31 @@
         // ignore write failures (e.g., private browsing)
       }
     });
+
+    if (fullscreenBtn) {
+      fullscreenBtn.addEventListener("click", () => {
+        toggleFullScreen();
+      });
+    }
+
+    const handleFullscreenChange = () => {
+      const isFullscreen = document.fullscreenElement === fullscreenTarget;
+      setFullscreenLabels(isFullscreen);
+      relocateThemeToggle(isFullscreen);
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
     
     // On pressing ENTER call toggleFullScreen method
     document.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === "f" || e.key === "F") {
-        toggleFullScreen(player);
+        toggleFullScreen();
       }
     });
     
-    function toggleFullScreen(video) {
+    function toggleFullScreen() {
       if (!document.fullscreenElement) {
-        video.requestFullscreen();
+        fullscreenTarget.requestFullscreen?.();
       } else {
         document.exitFullscreen?.();
       }
