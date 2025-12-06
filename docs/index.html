@@ -76,15 +76,31 @@
       margin-top: 2.5em;
     }
 
+    #experience-shell {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 24px;
+    }
+
     #game-container {
       display: flex;
       justify-content: center;
+      align-items: stretch;
       margin: 0 0 40px;
       background: var(--panel-dark);
       border-radius: 20px;
       padding: 0 20px 20px;
       box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.3);
       transition: background 0.3s ease, box-shadow 0.3s ease;
+      height: clamp(520px, calc(100vh - 120px), 1200px);
+    }
+
+    #game-container > ruffle-player {
+      flex: 1;
+      width: min(100%, 1200px);
+      height: 100%;
     }
 
     html[data-theme="light"] #game-container {
@@ -201,23 +217,25 @@
 </style>
 </head>
 <body>
-  <div class="theme-toggle" aria-live="polite">
-    <button id="theme-toggle" type="button" aria-label="Switch to light mode" title="Switch to light mode">
-      <span class="icon icon-dark" aria-hidden="true">
-        <svg viewBox="0 0 24 24" role="presentation" focusable="false">
-          <path fill="currentColor" d="M21 15.25A9 9 0 0 1 8.75 3 7.25 7.25 0 1 0 21 15.25Z" />
-        </svg>
-      </span>
-      <span class="icon icon-light" aria-hidden="true">☀</span>
-      <span class="sr-only">Toggle color mode</span>
-    </button>
-    <button id="fullscreen-toggle" type="button" aria-label="Enter fullscreen" title="Enter fullscreen">
-      <span class="icon icon-fullscreen" aria-hidden="true">⛶</span>
-      <span class="sr-only">Toggle fullscreen</span>
-    </button>
-  </div>
+  <div id="experience-shell">
+    <div class="theme-toggle" aria-live="polite">
+      <button id="theme-toggle" type="button" aria-label="Switch to light mode" title="Switch to light mode">
+        <span class="icon icon-dark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" role="presentation" focusable="false">
+            <path fill="currentColor" d="M21 15.25A9 9 0 0 1 8.75 3 7.25 7.25 0 1 0 21 15.25Z" />
+          </svg>
+        </span>
+        <span class="icon icon-light" aria-hidden="true">☀</span>
+        <span class="sr-only">Toggle color mode</span>
+      </button>
+      <button id="fullscreen-toggle" type="button" aria-label="Enter fullscreen" title="Enter fullscreen">
+        <span class="icon icon-fullscreen" aria-hidden="true">⛶</span>
+        <span class="sr-only">Toggle fullscreen</span>
+      </button>
+    </div>
 
-  <div id="game-container"></div>
+    <div id="game-container"></div>
+  </div>
   <script>
     window.RufflePlayer = window.RufflePlayer || {};
 
@@ -225,14 +243,7 @@
     const body = document.body;
     const toggleBtn = document.getElementById("theme-toggle");
     const fullscreenBtn = document.getElementById("fullscreen-toggle");
-    const themeToggleContainer = document.querySelector(".theme-toggle");
-    const themeTogglePlaceholder = document.createComment("theme-toggle-placeholder");
-    if (themeToggleContainer?.parentNode) {
-      themeToggleContainer.parentNode.insertBefore(
-        themeTogglePlaceholder,
-        themeToggleContainer.nextSibling
-      );
-    }
+    const fullscreenTarget = document.getElementById("experience-shell");
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     let storedTheme = null;
     try {
@@ -258,7 +269,6 @@
     const player = ruffle.createPlayer();
     document.getElementById("game-container").appendChild(player);
     player.load("squid_game.swf");
-    const fullscreenTarget = player;
 
     const setToggleLabels = (theme) => {
       const label = theme === "dark" ? "Switch to light mode" : "Switch to dark mode";
@@ -284,17 +294,6 @@
       player.style.backgroundColor = backgroundColor;
     };
 
-    const relocateThemeToggle = (isFullscreen) => {
-      if (!themeToggleContainer || !themeTogglePlaceholder?.parentNode) {
-        return;
-      }
-      if (isFullscreen) {
-        fullscreenTarget.appendChild(themeToggleContainer);
-      } else {
-        themeTogglePlaceholder.parentNode.insertBefore(themeToggleContainer, themeTogglePlaceholder);
-      }
-    };
-
     const applyTheme = (theme) => {
       root.setAttribute("data-theme", theme);
       body.setAttribute("data-theme", theme);
@@ -304,7 +303,6 @@
 
     applyTheme(initialTheme);
     setFullscreenLabels(false);
-    relocateThemeToggle(false);
 
     toggleBtn.addEventListener("click", () => {
       const nextTheme = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
@@ -323,9 +321,9 @@
     }
 
     const handleFullscreenChange = () => {
-      const isFullscreen = document.fullscreenElement === fullscreenTarget;
+      const target = fullscreenTarget || player;
+      const isFullscreen = document.fullscreenElement === target;
       setFullscreenLabels(isFullscreen);
-      relocateThemeToggle(isFullscreen);
     };
 
     document.addEventListener("fullscreenchange", handleFullscreenChange);
@@ -339,7 +337,7 @@
     
     function toggleFullScreen() {
       if (!document.fullscreenElement) {
-        fullscreenTarget.requestFullscreen?.();
+        (fullscreenTarget || player).requestFullscreen?.();
       } else {
         document.exitFullscreen?.();
       }
